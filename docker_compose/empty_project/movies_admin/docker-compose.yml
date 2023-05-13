@@ -11,20 +11,24 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", POSTGRES_DB, "-U", POSTGRES_USER ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
       - ./pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+
 
   service:
     container_name: movies_django
     build: .
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     volumes:
       - ./static:/static
-    ports:
-      - "8000:8000"
+
 
   nginx:
     container_name: nginx
